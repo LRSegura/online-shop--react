@@ -1,8 +1,8 @@
 import {BrowserRouter, Link, Route, Routes} from "react-router-dom";
 import {Home} from "../Home";
-import {Dashboard} from "../Dashboard";
 import React from "react";
 import Sales from "../sales/Sales";
+import User from "../user/User";
 
 export function Navigation() {
     return (
@@ -15,7 +15,7 @@ export function Navigation() {
                     <Link className="nav-link active" to="/sales">Sales</Link>
                 </li>
                 <li className="nav-item">
-                    <Link className="nav-link active" to="/dashboard">Dashboard</Link>
+                    <Link className="nav-link active" to="/user">User</Link>
                 </li>
             </ul>
             <div>
@@ -23,7 +23,7 @@ export function Navigation() {
                 <Routes>
                     <Route path="/" element={<Home/>}/>
                     <Route path="/sales" element={<Sales/>}/>
-                    <Route path="/dashboard" element={<Dashboard/>}/>
+                    <Route path="/user" element={<User/>}/>
                 </Routes>
             </div>
         </BrowserRouter>
