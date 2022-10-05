@@ -1,5 +1,5 @@
 import {BrowserRouter, Link, Route, Routes} from "react-router-dom";
-import {Home} from "../Home";
+import Home from "../Home";
 import React from "react";
 import Sales from "../sales/Sales";
 import User from "../user/User";

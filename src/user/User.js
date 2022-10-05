@@ -2,21 +2,69 @@ import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-notifications/lib/notifications.css';
 import {NotificationContainer, NotificationManager} from 'react-notifications';
+import {
+    Button,
+    Dropdown,
+    DropdownItem,
+    DropdownMenu,
+    DropdownToggle,
+    Modal,
+    ModalBody,
+    ModalFooter,
+    ModalHeader
+} from "reactstrap";
 
 class User extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            users: []
+            users: [],
+            isShowModal: false,
+            isDropDownOpen: false,
+            userLevels: [],
+            firstName: '',
+            lastName: '',
+            userName: '',
+            password: '',
+            email: '',
+            userLevel: 'User Level',
+            isActive: false,
+            userCreated: {}
+
         }
-        // this.handleChange = this.handleChange.bind(this);
-        // this.handleSubmit = this.handleSubmit.bind(this);
+        this.showModalListener = this.showModalListener.bind(this);
+        this.showDropDownListener = this.showDropDownListener.bind(this);
+        this.selectValueDropDownListener = this.selectValueDropDownListener.bind(this);
+        this.handleChangeModal = this.handleChangeModal.bind(this);
+        this.checkBoxListener = this.checkBoxListener.bind(this);
+        this.handleSubmitUser = this.handleSubmitUser.bind(this);
+    }
+
+    showModalListener() {
+        this.setState(prevState => ({
+            isShowModal: !prevState.isShowModal
+        }));
+    }
+
+    selectValueDropDownListener(e){
+        this.setState({userLevel: e.currentTarget.textContent})
+    }
+
+    showDropDownListener() {
+        this.setState(prevState => ({
+            isDropDownOpen: !prevState.isDropDownOpen
+        }));
+    }
+
+    checkBoxListener() {
+        const checkBox = document.querySelector('#checkIsUserActive');
+        this.setState({isActive:checkBox.checked});
     }
 
     async componentDidMount() {
-        const url = "http://localhost:8080/Online-Shop/webapi/application/users";
+        const urlUsers = "http://localhost:8080/Online-Shop/webapi/application/users";
 
-        const response = await fetch(url, {
+        const responseUsers = await fetch(urlUsers, {
             mode: 'cors',
             cache: 'no-cache',
             credentials: 'omit',
@@ -26,61 +74,150 @@ class User extends React.Component {
             redirect: 'follow',
             referrerPolicy: 'no-referrer',
         });
-        response.json().then(data => {
-            const users = [];
+        responseUsers.json().then(data => {
             for (let i = 0; i < data.length; i++) {
-                users.push(data[i]);
                 this.setState(prevState => ({
                     users: [...prevState.users, data[i]]
                 }));
             }
-            // console.log(this.state.products);
-            console.log(users);
+        });
+
+        const urlUserLevels = "http://localhost:8080/Online-Shop/webapi/application/users/userlevel";
+
+        const responseUserLevels = await fetch(urlUserLevels, {
+            mode: 'cors',
+            cache: 'no-cache',
+            credentials: 'omit',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            redirect: 'follow',
+            referrerPolicy: 'no-referrer',
+        });
+        responseUserLevels.json().then(data => {
+            const levels = data.dataResponse.userLevel;
+            for (let i = 0; i < levels.length; i++) {
+                this.setState(prevState => ({
+                    userLevels: [...prevState.userLevels, levels[i]]
+                }));
+            }
         });
     }
 
-    // handleChange(event) {
-    //     if (event.target.id === "username") {
-    //         this.setState({userName: event.target.value});
-    //     }
-    //     if (event.target.id === "password") {
-    //         this.setState({password: event.target.value});
-    //     }
-    // }
-    //
-    // async handleSubmit(event) {
-    //     event.preventDefault();
-    //     const usernameParam = this.state.userName;
-    //     const passwordParam = this.state.password;
-    //     const url = "http://localhost:8080/Online-Shop/webapi/application/login?" + new URLSearchParams({
-    //         username: usernameParam,
-    //         password: passwordParam
-    //     })
-    //
-    //     const response = await fetch(url, {
-    //         mode: 'cors',
-    //         cache: 'no-cache',
-    //         credentials: 'omit',
-    //         headers: {
-    //             'Content-Type': 'application/json'
-    //         },
-    //         redirect: 'follow',
-    //         referrerPolicy: 'no-referrer',
-    //         // body: JSON.stringify(data)
-    //     });
-    //     response.json().then(value => {
-    //         console.log(value);
-    //         if (value.success) {
-    //             NotificationManager.success("Success");
-    //         } else {
-    //             NotificationManager.error(value.message, "Failed");
-    //         }
-    //     });
-    // }
+    handleChangeModal(event) {
+        const elementId = event.target.id;
+        const value = event.target.value;
+        switch (elementId) {
+            case "firstName":
+                this.setState({firstName: value});
+                break;
+            case "lastName":
+                this.setState({lastName: value});
+                break;
+            case "userName":
+                this.setState({userName: value});
+                break;
+            case "Password":
+                this.setState({password: value});
+                break;
+            case "email":
+                this.setState({email: value});
+                break;
+            default:
+        }
+
+    }
+    async handleSubmitUser() {
+        const password = document.getElementById('password').value;
+        const user = {
+            firstName: this.state.firstName,
+            lastName: this.state.lastName,
+            userName: this.state.userName,
+            password: password,
+            email: this.state.email,
+            userLevel: this.state.userLevel,
+            isActive: this.state.isActive
+        }
+        this.showModalListener();
+        console.log(user);
+
+        const url = "http://localhost:8080/Online-Shop/webapi/application/users/add";
+        const response = await fetch(url, {
+            method: 'POST',
+            mode: 'cors',
+            cache: 'no-cache',
+            credentials: 'omit',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            redirect: 'follow',
+            referrerPolicy: 'no-referrer',
+            body: JSON.stringify(user)
+        });
+        response.json().then(value => {
+            if (value.success) {
+                NotificationManager.success("User added");
+            } else {
+                NotificationManager.error("Error saving user", "Failed");
+                console.log(value.message);
+            }
+        });
+    }
 
     render() {
         return (
             <div>
+                <Modal isOpen={this.state.isShowModal} toggle={this.showModalListener} style={{width:'70%'}} >
+                    <ModalHeader toggle={this.showModalListener}>Add User</ModalHeader>
+                    <ModalBody>
+                        <form >
+                            <div className="mb-3">
+                                <input id="firstName" type="text" className="form-control" placeholder="First Name"
+                                       onChange={this.handleChangeModal}/>
+                            </div>
+                            <div className="mb-3">
+                                <input id="lastName" type="text" className="form-control" placeholder="Last Name"
+                                       onChange={this.handleChangeModal}/>
+                            </div>
+                            <div className="mb-3">
+                                <input id="userName" type="text" className="form-control" placeholder="User Name"
+                                       onChange={this.handleChangeModal}/>
+                            </div>
+                            <div className="mb-3">
+                                <input id="password" type="password" className="form-control" placeholder="Password"
+                                       onChange={this.handleChangeModal}/>
+                            </div>
+                            <div className="mb-3">
+                                <input id="email" type="email" className="form-control" placeholder="Email"
+                                       onChange={this.handleChangeModal}/>
+                            </div>
+
+                            <Dropdown isOpen={this.state.isDropDownOpen} onChange={this.listener} toggle={this.showDropDownListener} direction={"down"}>
+                                <DropdownToggle caret>{this.state.userLevel}</DropdownToggle>
+                                <DropdownMenu >
+                                    {
+                                        this.state.userLevels.map(value => {
+                                            return(
+                                                <DropdownItem key={value} onClick={this.selectValueDropDownListener}>{value}</DropdownItem>
+                                            );
+                                        })
+                                    }
+                                </DropdownMenu>
+                            </Dropdown>
+                            <br/>
+                            <div className="form-check form-switch">
+                                <input className="form-check-input" type="checkbox" role="switch" id="checkIsUserActive" onChange={this.checkBoxListener}/>
+                                    <label className="form-check-label" htmlFor="checkIsUserActive">Is Active?</label>
+                            </div>
+
+
+                        </form>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button color="primary" onClick={this.handleSubmitUser}>Add</Button>{' '}
+                        <Button color="secondary" onClick={this.showModalListener}>Cancel</Button>
+                    </ModalFooter>
+                </Modal>
                 <div className="container">
                     <div className="row">
                         <div className="col-sm"></div>
@@ -93,8 +230,10 @@ class User extends React.Component {
                     <br/>
                     <div className="row">
                         <div className="d-grid gap-2 d-md-block">
-                            <button className="btn btn-primary" type="button">Add</button>
+                            <button className="btn btn-primary" onClick={this.showModalListener} type="button">Add</button>
                             <button className="btn btn-danger" type="button" style={{float:"right"}}>Delete</button>
+
+
                         </div>
                     </div>
                     <div className="row">
@@ -130,6 +269,8 @@ class User extends React.Component {
 
                 </div>
                 <NotificationContainer/>
+
+
             </div>
         );
     }

@@ -98,3 +98,4 @@ export default Login;
 //npm install react-bootstrap bootstrap
 //npm install --save react-notifications
 //npm install react-router-dom --save
+//npm install --save reactstrap react react-dom
