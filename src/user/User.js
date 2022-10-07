@@ -36,8 +36,10 @@ class User extends React.Component {
         this.showDropDownListener = this.showDropDownListener.bind(this);
         this.selectValueDropDownListener = this.selectValueDropDownListener.bind(this);
         this.handleChangeModal = this.handleChangeModal.bind(this);
-        this.checkBoxListener = this.checkBoxListener.bind(this);
+        this.checkBoxAddUserListener = this.checkBoxAddUserListener.bind(this);
         this.handleSubmitUser = this.handleSubmitUser.bind(this);
+        this.checkBoxDeleteUserListener = this.checkBoxDeleteUserListener.bind(this);
+        this.deleteUsersSelectedListener = this.deleteUsersSelectedListener.bind(this);
     }
 
     showModalListener() {
@@ -56,12 +58,31 @@ class User extends React.Component {
         }));
     }
 
-    checkBoxListener() {
+    checkBoxAddUserListener() {
         const checkBox = document.querySelector('#checkIsUserActive');
         this.setState({isActive:checkBox.checked});
     }
 
-    async componentDidMount() {
+    deleteUsersSelectedListener(){
+        const users = this.state.users;
+        const filteredUsers = users.filter(user => !user.selectedToDelete);
+        this.setState({users:filteredUsers});
+        // console.log(filteredUsers);
+    }
+
+    checkBoxDeleteUserListener(event) {
+        const object = event.target;
+        const checkBox = document.querySelector('#'+object.id);
+        const users = this.state.users;
+        users.forEach(user => {
+            if(user.id === Number(object.value)){
+                user.selectedToDelete =checkBox.checked;
+            }
+        });
+        // console.log(users.filter(user => user.selectedToDelete));
+    }
+
+    async getUsers(){
         const urlUsers = "http://localhost:8080/Online-Shop/webapi/application/users";
 
         const responseUsers = await fetch(urlUsers, {
@@ -81,7 +102,9 @@ class User extends React.Component {
                 }));
             }
         });
+    }
 
+    async getUserLevel() {
         const urlUserLevels = "http://localhost:8080/Online-Shop/webapi/application/users/userlevel";
 
         const responseUserLevels = await fetch(urlUserLevels, {
@@ -102,6 +125,11 @@ class User extends React.Component {
                 }));
             }
         });
+    }
+
+    async componentDidMount() {
+         await this.getUsers();
+         await this.getUserLevel();
     }
 
     handleChangeModal(event) {
@@ -127,9 +155,18 @@ class User extends React.Component {
         }
 
     }
+
     async handleSubmitUser() {
+       this.showModalListener();
+       const user = this.getUserFromState();
+       await this.postUser(user);
+       this.setState({users:[]})
+       await this.getUsers();
+    }
+
+    getUserFromState(){
         const password = document.getElementById('password').value;
-        const user = {
+        return {
             firstName: this.state.firstName,
             lastName: this.state.lastName,
             userName: this.state.userName,
@@ -137,10 +174,10 @@ class User extends React.Component {
             email: this.state.email,
             userLevel: this.state.userLevel,
             isActive: this.state.isActive
-        }
-        this.showModalListener();
-        console.log(user);
+        };
+    }
 
+    async postUser(user) {
         const url = "http://localhost:8080/Online-Shop/webapi/application/users/add";
         const response = await fetch(url, {
             method: 'POST',
@@ -206,7 +243,7 @@ class User extends React.Component {
                             </Dropdown>
                             <br/>
                             <div className="form-check form-switch">
-                                <input className="form-check-input" type="checkbox" role="switch" id="checkIsUserActive" onChange={this.checkBoxListener}/>
+                                <input className="form-check-input" type="checkbox" role="switch" id="checkIsUserActive" onChange={this.checkBoxAddUserListener}/>
                                     <label className="form-check-label" htmlFor="checkIsUserActive">Is Active?</label>
                             </div>
 
@@ -231,7 +268,7 @@ class User extends React.Component {
                     <div className="row">
                         <div className="d-grid gap-2 d-md-block">
                             <button className="btn btn-primary" onClick={this.showModalListener} type="button">Add</button>
-                            <button className="btn btn-danger" type="button" style={{float:"right"}}>Delete</button>
+                            <button className="btn btn-danger" onClick={this.deleteUsersSelectedListener} type="button" style={{float:"right"}}>Delete</button>
 
 
                         </div>
@@ -248,6 +285,7 @@ class User extends React.Component {
                                 <th scope="col">User Level</th>
                                 <th scope="col">Is active?</th>
                                 <th scope="col">Register Date</th>
+                                <th scope="col"></th>
                             </tr>
                             </thead>
                             <tbody>
@@ -260,6 +298,8 @@ class User extends React.Component {
                                         <td>{ item.userLevel }</td>
                                         <td>{ item.isActive }</td>
                                         <td>{ item.registerDate }</td>
+                                        <td><input className="form-check-input" type="checkbox" value={item.id}
+                                                   id={"checkUser"+item.id} onChange={this.checkBoxDeleteUserListener}/></td>
                                     </tr>
                                 );
                             })}
