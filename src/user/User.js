@@ -2,23 +2,15 @@ import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-notifications/lib/notifications.css';
 import {NotificationContainer, NotificationManager} from 'react-notifications';
-import {
-    Button,
-    Dropdown,
-    DropdownItem,
-    DropdownMenu,
-    DropdownToggle,
-    Modal,
-    ModalBody,
-    ModalFooter,
-    ModalHeader
-} from "reactstrap";
+import UserDataTable from "../login/UserDataTable";
+import AddUSerModal from "../login/AddUSerModal";
 
 class User extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             users: [],
+            usersCopy:[],
             isShowModal: false,
             isDropDownOpen: false,
             userLevels: [],
@@ -30,7 +22,6 @@ class User extends React.Component {
             userLevel: 'User Level',
             isActive: false,
             userCreated: {}
-
         }
         this.showModalListener = this.showModalListener.bind(this);
         this.showDropDownListener = this.showDropDownListener.bind(this);
@@ -40,6 +31,7 @@ class User extends React.Component {
         this.handleSubmitUser = this.handleSubmitUser.bind(this);
         this.checkBoxDeleteUserListener = this.checkBoxDeleteUserListener.bind(this);
         this.deleteUsersSelectedListener = this.deleteUsersSelectedListener.bind(this);
+        this.filterDataTable = this.filterDataTable.bind(this);
     }
 
     showModalListener() {
@@ -48,7 +40,7 @@ class User extends React.Component {
         }));
     }
 
-    selectValueDropDownListener(e){
+    selectValueDropDownListener(e) {
         this.setState({userLevel: e.currentTarget.textContent})
     }
 
@@ -60,29 +52,58 @@ class User extends React.Component {
 
     checkBoxAddUserListener() {
         const checkBox = document.querySelector('#checkIsUserActive');
-        this.setState({isActive:checkBox.checked});
+        this.setState({isActive: checkBox.checked});
     }
 
-    deleteUsersSelectedListener(){
-        const users = this.state.users;
+    async deleteUsersSelectedListener() {
+        const users = this.state.usersCopy;
         const filteredUsers = users.filter(user => !user.selectedToDelete);
-        this.setState({users:filteredUsers});
-        // console.log(filteredUsers);
+        this.setState({users: filteredUsers});
+        this.setState({usersCopy: filteredUsers});
+        const idArray = [];
+        users.filter(user => user.selectedToDelete).forEach(user => idArray.push(user.id));
+        const obj = {
+            usersId: idArray
+        }
+        await this.deleteUsers(obj);
+    }
+
+    async deleteUsers(user) {
+        const url = "http://localhost:8080/Online-Shop/webapi/application/users/delete";
+        const response = await fetch(url, {
+            method: 'DELETE',
+            mode: 'cors',
+            cache: 'no-cache',
+            credentials: 'omit',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            redirect: 'follow',
+            referrerPolicy: 'no-referrer',
+            body: JSON.stringify(user)
+        });
+        response.json().then(value => {
+            if (value.success) {
+                NotificationManager.success("User deleted");
+            } else {
+                NotificationManager.error("Error deleting user", "Failed");
+                console.log(value.message);
+            }
+        });
     }
 
     checkBoxDeleteUserListener(event) {
         const object = event.target;
-        const checkBox = document.querySelector('#'+object.id);
+        const checkBox = document.querySelector('#' + object.id);
         const users = this.state.users;
         users.forEach(user => {
-            if(user.id === Number(object.value)){
-                user.selectedToDelete =checkBox.checked;
+            if (user.id === Number(object.value)) {
+                user.selectedToDelete = checkBox.checked;
             }
         });
-        // console.log(users.filter(user => user.selectedToDelete));
     }
 
-    async getUsers(){
+    async getUsers() {
         const urlUsers = "http://localhost:8080/Online-Shop/webapi/application/users";
 
         const responseUsers = await fetch(urlUsers, {
@@ -98,7 +119,7 @@ class User extends React.Component {
         responseUsers.json().then(data => {
             for (let i = 0; i < data.length; i++) {
                 this.setState(prevState => ({
-                    users: [...prevState.users, data[i]]
+                    users: [...prevState.users, data[i]], usersCopy:[...prevState.usersCopy, data[i]]
                 }));
             }
         });
@@ -128,8 +149,8 @@ class User extends React.Component {
     }
 
     async componentDidMount() {
-         await this.getUsers();
-         await this.getUserLevel();
+        await this.getUsers();
+        await this.getUserLevel();
     }
 
     handleChangeModal(event) {
@@ -157,14 +178,14 @@ class User extends React.Component {
     }
 
     async handleSubmitUser() {
-       this.showModalListener();
-       const user = this.getUserFromState();
-       await this.postUser(user);
-       this.setState({users:[]})
-       await this.getUsers();
+        this.showModalListener();
+        const user = this.getUserFromState();
+        await this.postUser(user);
+        this.setState({users: []})
+        await this.getUsers();
     }
 
-    getUserFromState(){
+    getUserFromState() {
         const password = document.getElementById('password').value;
         return {
             firstName: this.state.firstName,
@@ -201,116 +222,55 @@ class User extends React.Component {
         });
     }
 
+    filterDataTable(event){
+        const value = event.target.value;
+        const originalArray = this.state.usersCopy;
+        if(value.length !== 0){
+            const filteredArray = originalArray.filter(user => user.firstName.toLowerCase() === value.toLowerCase()
+                || user.lastName.toLowerCase() === value.toLowerCase() || user.userName.toLowerCase() === value.toLowerCase()
+                || user.userLevel.toLowerCase() === value.toLowerCase());
+            console.log(filteredArray);
+            this.setState({users:filteredArray});
+        } else {
+            this.setState({users:originalArray});
+        }
+    }
+
     render() {
         return (
             <div>
-                <Modal isOpen={this.state.isShowModal} toggle={this.showModalListener} style={{width:'70%'}} >
-                    <ModalHeader toggle={this.showModalListener}>Add User</ModalHeader>
-                    <ModalBody>
-                        <form >
-                            <div className="mb-3">
-                                <input id="firstName" type="text" className="form-control" placeholder="First Name"
-                                       onChange={this.handleChangeModal}/>
-                            </div>
-                            <div className="mb-3">
-                                <input id="lastName" type="text" className="form-control" placeholder="Last Name"
-                                       onChange={this.handleChangeModal}/>
-                            </div>
-                            <div className="mb-3">
-                                <input id="userName" type="text" className="form-control" placeholder="User Name"
-                                       onChange={this.handleChangeModal}/>
-                            </div>
-                            <div className="mb-3">
-                                <input id="password" type="password" className="form-control" placeholder="Password"
-                                       onChange={this.handleChangeModal}/>
-                            </div>
-                            <div className="mb-3">
-                                <input id="email" type="email" className="form-control" placeholder="Email"
-                                       onChange={this.handleChangeModal}/>
-                            </div>
+                <AddUSerModal isShowModal={this.state.isShowModal} showModalListener={this.showModalListener}
+                              handleChangeModal={this.handleChangeModal} isDropDownOpen={this.state.isDropDownOpen}
+                              showDropDownListener={this.showDropDownListener} userLevel={this.state.userLevel}
+                              userLevels={this.state.userLevels}
+                              selectValueDropDownListener={this.selectValueDropDownListener}
+                              checkBoxAddUserListener={this.checkBoxAddUserListener}
+                              handleSubmitUser={this.handleSubmitUser}/>
 
-                            <Dropdown isOpen={this.state.isDropDownOpen} onChange={this.listener} toggle={this.showDropDownListener} direction={"down"}>
-                                <DropdownToggle caret>{this.state.userLevel}</DropdownToggle>
-                                <DropdownMenu >
-                                    {
-                                        this.state.userLevels.map(value => {
-                                            return(
-                                                <DropdownItem key={value} onClick={this.selectValueDropDownListener}>{value}</DropdownItem>
-                                            );
-                                        })
-                                    }
-                                </DropdownMenu>
-                            </Dropdown>
-                            <br/>
-                            <div className="form-check form-switch">
-                                <input className="form-check-input" type="checkbox" role="switch" id="checkIsUserActive" onChange={this.checkBoxAddUserListener}/>
-                                    <label className="form-check-label" htmlFor="checkIsUserActive">Is Active?</label>
-                            </div>
-
-
-                        </form>
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button color="primary" onClick={this.handleSubmitUser}>Add</Button>{' '}
-                        <Button color="secondary" onClick={this.showModalListener}>Cancel</Button>
-                    </ModalFooter>
-                </Modal>
                 <div className="container">
                     <div className="row">
                         <div className="col-sm"></div>
                         <div className="col-md-5">
                             <input className="form-control" type="text" placeholder="Search User"
-                                   aria-label="default input example" style={{width:"100%"}}/>
+                                   aria-label="default input example" style={{width: "100%"}} onChange={this.filterDataTable}/>
                         </div>
                         <div className="col-sm"></div>
                     </div>
                     <br/>
                     <div className="row">
                         <div className="d-grid gap-2 d-md-block">
-                            <button className="btn btn-primary" onClick={this.showModalListener} type="button">Add</button>
-                            <button className="btn btn-danger" onClick={this.deleteUsersSelectedListener} type="button" style={{float:"right"}}>Delete</button>
-
-
+                            <button className="btn btn-primary" onClick={this.showModalListener} type="button">Add
+                            </button>
+                            <button className="btn btn-danger" onClick={this.deleteUsersSelectedListener} type="button"
+                                    style={{float: "right"}}>Delete
+                            </button>
                         </div>
                     </div>
                     <div className="row">
-                        <table className="table">
-                            <thead>
-                            <tr>
-                                {/*{heading.map(head => <th>{head}</th>)}*/}
-
-                                <th scope="col">First Name</th>
-                                <th scope="col">Last Name</th>
-                                <th scope="col">User Name</th>
-                                <th scope="col">User Level</th>
-                                <th scope="col">Is active?</th>
-                                <th scope="col">Register Date</th>
-                                <th scope="col"></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {this.state.users.map(item => {
-                                return (
-                                    <tr key={item.id}>
-                                        <td>{ item.firstName }</td>
-                                        <td>{ item.lastName }</td>
-                                        <td>{ item.userName }</td>
-                                        <td>{ item.userLevel }</td>
-                                        <td>{ item.isActive }</td>
-                                        <td>{ item.registerDate }</td>
-                                        <td><input className="form-check-input" type="checkbox" value={item.id}
-                                                   id={"checkUser"+item.id} onChange={this.checkBoxDeleteUserListener}/></td>
-                                    </tr>
-                                );
-                            })}
-                            </tbody>
-                        </table>
+                        <UserDataTable data={this.state.users} checkBoxListener={this.checkBoxDeleteUserListener}/>
                     </div>
-
                 </div>
                 <NotificationContainer/>
-
-
             </div>
         );
     }
