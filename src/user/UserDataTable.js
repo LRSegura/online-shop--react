@@ -21,7 +21,7 @@ export default function UserDataTable(props) {
                     <td>{item.lastName}</td>
                     <td>{item.userName}</td>
                     <td>{item.userLevel}</td>
-                    <td>{item.isActive}</td>
+                    <td>{item.isActive ? "true":"false"}</td>
                     <td>{item.registerDate}</td>
                     <td><input className="form-check-input" type="checkbox" value={item.id}
                                id={"checkUser" + item.id} onChange={props.checkBoxListener}/></td>

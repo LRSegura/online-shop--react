@@ -2,15 +2,14 @@ import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-notifications/lib/notifications.css';
 import {NotificationContainer, NotificationManager} from 'react-notifications';
-import UserDataTable from "../login/UserDataTable";
-import AddUSerModal from "../login/AddUSerModal";
+import UserDataTable from "./UserDataTable";
+import AddUSerModal from "./AddUSerModal";
 
 class User extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             users: [],
-            usersCopy:[],
             isShowModal: false,
             isDropDownOpen: false,
             userLevels: [],
@@ -21,7 +20,8 @@ class User extends React.Component {
             email: '',
             userLevel: 'User Level',
             isActive: false,
-            userCreated: {}
+            userCreated: {},
+            userSet: new Set()
         }
         this.showModalListener = this.showModalListener.bind(this);
         this.showDropDownListener = this.showDropDownListener.bind(this);
@@ -56,14 +56,26 @@ class User extends React.Component {
     }
 
     async deleteUsersSelectedListener() {
-        const users = this.state.usersCopy;
-        const filteredUsers = users.filter(user => !user.selectedToDelete);
-        this.setState({users: filteredUsers});
-        this.setState({usersCopy: filteredUsers});
-        const idArray = [];
-        users.filter(user => user.selectedToDelete).forEach(user => idArray.push(user.id));
+        const userSet = this.state.userSet;
+        const usersToDelete = [];
+
+        userSet.forEach(value => {
+            if(value.selectedToDelete){
+                usersToDelete.push(value);
+            }
+        })
+
+        const idUsersToDelete = [];
+        for (const usersToDeleteElement of usersToDelete) {
+            userSet.delete(usersToDeleteElement);
+            idUsersToDelete.push(usersToDeleteElement.id);
+        }
+        const users = [];
+
+        userSet.forEach(value => users.push(value));
+        this.setState({users: users});
         const obj = {
-            usersId: idArray
+            usersId: idUsersToDelete
         }
         await this.deleteUsers(obj);
     }
@@ -117,11 +129,14 @@ class User extends React.Component {
             referrerPolicy: 'no-referrer',
         });
         responseUsers.json().then(data => {
+            const userArray = [];
+            const userSet = new Set();
             for (let i = 0; i < data.length; i++) {
-                this.setState(prevState => ({
-                    users: [...prevState.users, data[i]], usersCopy:[...prevState.usersCopy, data[i]]
-                }));
+                userSet.add(data[i]);
             }
+            this.setState({userSet:userSet})
+            userSet.forEach(value => userArray.push(value))
+            this.setState({users:userArray})
         });
     }
 
@@ -224,15 +239,21 @@ class User extends React.Component {
 
     filterDataTable(event){
         const value = event.target.value;
-        const originalArray = this.state.usersCopy;
+        const userSet = this.state.userSet;
         if(value.length !== 0){
-            const filteredArray = originalArray.filter(user => user.firstName.toLowerCase() === value.toLowerCase()
-                || user.lastName.toLowerCase() === value.toLowerCase() || user.userName.toLowerCase() === value.toLowerCase()
-                || user.userLevel.toLowerCase() === value.toLowerCase());
-            console.log(filteredArray);
-            this.setState({users:filteredArray});
+            const filteredUsers = [];
+            userSet.forEach(user => {
+                if(user.firstName.toLowerCase() === value.toLowerCase()
+                        || user.lastName.toLowerCase() === value.toLowerCase() || user.userName.toLowerCase() === value.toLowerCase()
+                        || user.userLevel.toLowerCase() === value.toLowerCase()){
+                    filteredUsers.push(user);
+                }
+            });
+            this.setState({users:filteredUsers});
         } else {
-            this.setState({users:originalArray});
+            const userArray = [];
+            userSet.forEach(user => userArray.push(user));
+            this.setState({users:userArray});
         }
     }
 
