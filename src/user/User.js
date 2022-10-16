@@ -14,31 +14,18 @@ class User extends React.Component {
             userSet: new Set(),
             isShowModalToAddUser: false,
             isShowUpdateUserModal: false,
-            isDropDownUpdateUserOpen: false,
             userLevels: [],
-            updatedUser: {},
-            isActiveUpdate: false,
-            userLevelUpdate: 'User Level',
-            firstNameUpdate: '',
-            lastNameUpdate: '',
-            userNameUpdate: '',
-            passwordUpdate: '',
-            emailUpdate: ''
-
+            updatedUser: {}
         }
         this.showUpdateUserModal = this.showUpdateUserModal.bind(this);
-        this.showDropDownUpdateUserModal = this.showDropDownUpdateUserModal.bind(this);
         this.showModalToAddUser = this.showModalToAddUser.bind(this);
         this.saveUser = this.saveUser.bind(this);
         this.checkBoxDeleteUserListener = this.checkBoxDeleteUserListener.bind(this);
         this.deleteUsersSelected = this.deleteUsersSelected.bind(this);
         this.filterUserDataTable = this.filterUserDataTable.bind(this);
         this.showModalToUpdateUser = this.showModalToUpdateUser.bind(this);
-        this.handleChangeUpdateUserModal = this.handleChangeUpdateUserModal.bind(this);
-        this.checkBoxUpdateUserListener = this.checkBoxUpdateUserListener.bind(this);
-        this.selectValueDropDownUpdateUserListener = this.selectValueDropDownUpdateUserListener.bind(this);
-        this.updateUser = this.updateUser.bind(this);
         this.completeActionAddUser = this.completeActionAddUser.bind(this);
+        this.completeActionUpdateUser = this.completeActionUpdateUser.bind(this);
     }
 
     completeActionAddUser(user){
@@ -46,14 +33,9 @@ class User extends React.Component {
         this.saveUser(user);
     }
 
-    clearFields(){
-        this.setState({firstName: '',
-            lastName: '',
-            userName: '',
-            password: '',
-            email: '',
-            userLevel: 'User Level',
-            isActive: false,});
+    completeActionUpdateUser(user){
+        this.showUpdateUserModal();
+        this.putUser(user);
     }
 
     showUpdateUserModal() {
@@ -62,31 +44,10 @@ class User extends React.Component {
         }));
     }
 
-    showDropDownUpdateUserModal() {
-        this.setState(prevState => ({
-            isDropDownUpdateUserOpen: !prevState.isDropDownUpdateUserOpen
-        }));
-    }
-
     showModalToAddUser() {
         this.setState(prevState => ({
             isShowModalToAddUser: !prevState.isShowModalToAddUser
         }));
-    }
-
-
-
-    selectValueDropDownUpdateUserListener(e) {
-        this.setState({userLevelUpdate: e.currentTarget.textContent})
-    }
-
-
-
-
-
-    checkBoxUpdateUserListener() {
-        const checkBox = document.querySelector('#checkIsUserActiveUpdate');
-        this.setState({isActiveUpdate: checkBox.checked});
     }
 
     async deleteUsersSelected() {
@@ -203,36 +164,6 @@ class User extends React.Component {
         await this.getUserLevel();
     }
 
-    handleChangeUpdateUserModal(event) {
-        const elementId = event.target.id;
-        const value = event.target.value;
-        switch (elementId) {
-            case "firstNameUpdate":
-                this.setState({firstNameUpdate: value});
-                break;
-            case "lastNameUpdate":
-                this.setState({lastNameUpdate: value});
-                break;
-            case "userNameUpdate":
-                this.setState({userNameUpdate: value});
-                break;
-            case "PasswordUpdate":
-                this.setState({passwordUpdate: value});
-                break;
-            case "emailUpdate":
-                this.setState({emailUpdate: value});
-                break;
-            default:
-        }
-    }
-
-    updateUser(){
-        this.showUpdateUserModal();
-        const updatedUser = this.getUserUpdatedFromState();
-        this.putUser(updatedUser);
-        console.log(updatedUser);
-    }
-
     async putUser(user) {
         const url = "http://localhost:8080/Online-Shop/webapi/application/users/update";
         const response = await fetch(url, {
@@ -263,22 +194,6 @@ class User extends React.Component {
         await this.postUser(user);
         await this.getUsers();
 
-    }
-
-    getUserUpdatedFromState() {
-        const password = document.getElementById('passwordUpdate').value;
-        const updatedUser = this.state.updatedUser;
-
-        return {
-            id: this.state.updatedUser.id,
-            firstName: this.state.firstNameUpdate.length === 0 ? updatedUser.firstName : this.state.firstNameUpdate,
-            lastName: this.state.lastNameUpdate.length === 0 ? updatedUser.lastName : this.state.lastNameUpdate,
-            userName: this.state.userNameUpdate.length === 0 ? updatedUser.userName : this.state.userNameUpdate,
-            password: password.length === 0 ? updatedUser.password : password ,
-            email: this.state.emailUpdate.length === 0 ? updatedUser.email : this.state.emailUpdate,
-            userLevel: this.state.userLevelUpdate,
-            isActive: this.state.isActiveUpdate
-        };
     }
 
     async postUser(user) {
@@ -347,15 +262,9 @@ class User extends React.Component {
 
                 <UpdateUSerModal isShowModal={this.state.isShowUpdateUserModal}
                                  showModalListener={this.showUpdateUserModal}
-                                 handleChangeModal={this.handleChangeUpdateUserModal}
-                                 isDropDownOpen={this.state.isDropDownUpdateUserOpen}
-                                 showDropDownListener={this.showDropDownUpdateUserModal}
-                                 userLevel={this.state.userLevel}
                                  userLevels={this.state.userLevels}
-                                 selectValueDropDownListener={this.selectValueDropDownUpdateUserListener}
-                                 checkBoxAddUserListener={this.checkBoxUpdateUserListener}
-                                 handleSubmitUser={this.updateUser}
-                                 updatedUser={this.state.updatedUser}/>
+                                 updatedUser={this.state.updatedUser}
+                                 completeAction={this.completeActionUpdateUser}/>
 
                 <div className="container">
                     <div className="row">

@@ -27,7 +27,7 @@ export default function UserDataTable(props) {
                     <td>{item.isActive ? "true":"false"}</td>
                     <td>{item.registerDate}</td>
                     <td><button className="btn btn-primary" type="button" onClick={props.handleUpdateUser} value={item.id}>Update
-                    </button></td>
+                        </button></td>
                 </tr>
             );
         })}
