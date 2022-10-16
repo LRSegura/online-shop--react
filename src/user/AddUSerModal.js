@@ -11,6 +11,7 @@ import {
 import React from "react";
 
 export default function AddUSerModal(props) {
+
     return <Modal isOpen={props.isShowModal} toggle={props.showModalListener} style={{width: '70%'}}>
         <ModalHeader toggle={props.showModalListener}>Add User</ModalHeader>
         <ModalBody>

@@ -4,6 +4,7 @@ export default function UserDataTable(props) {
     return <table className="table">
         <thead>
         <tr>
+            <th scope="col"></th>
             <th scope="col">First Name</th>
             <th scope="col">Last Name</th>
             <th scope="col">User Name</th>
@@ -17,14 +18,16 @@ export default function UserDataTable(props) {
         {props.data.map(item => {
             return (
                 <tr key={item.id}>
+                    <td><input className="form-check-input" type="checkbox" value={item.id}
+                               id={"checkUser" + item.id} onChange={props.checkBoxListener}/></td>
                     <td>{item.firstName}</td>
                     <td>{item.lastName}</td>
                     <td>{item.userName}</td>
                     <td>{item.userLevel}</td>
                     <td>{item.isActive ? "true":"false"}</td>
                     <td>{item.registerDate}</td>
-                    <td><input className="form-check-input" type="checkbox" value={item.id}
-                               id={"checkUser" + item.id} onChange={props.checkBoxListener}/></td>
+                    <td><button className="btn btn-primary" type="button" onClick={props.handleUpdateUser} value={item.id}>Update
+                    </button></td>
                 </tr>
             );
         })}
