@@ -13,17 +13,9 @@ class User extends React.Component {
             users: [],
             userSet: new Set(),
             isShowModalToAddUser: false,
-            isDropDownAddUserOpen: false,
             isShowUpdateUserModal: false,
             isDropDownUpdateUserOpen: false,
             userLevels: [],
-            firstName: '',
-            lastName: '',
-            userName: '',
-            password: '',
-            email: '',
-            userLevel: 'User Level',
-            isActive: false,
             updatedUser: {},
             isActiveUpdate: false,
             userLevelUpdate: 'User Level',
@@ -37,10 +29,6 @@ class User extends React.Component {
         this.showUpdateUserModal = this.showUpdateUserModal.bind(this);
         this.showDropDownUpdateUserModal = this.showDropDownUpdateUserModal.bind(this);
         this.showModalToAddUser = this.showModalToAddUser.bind(this);
-        this.showDropDownAddUserModal = this.showDropDownAddUserModal.bind(this);
-        this.selectValueDropDownAddUserListener = this.selectValueDropDownAddUserListener.bind(this);
-        this.handleValueTextChangeAddUserModal = this.handleValueTextChangeAddUserModal.bind(this);
-        this.checkBoxAddUserListener = this.checkBoxAddUserListener.bind(this);
         this.saveUser = this.saveUser.bind(this);
         this.checkBoxDeleteUserListener = this.checkBoxDeleteUserListener.bind(this);
         this.deleteUsersSelected = this.deleteUsersSelected.bind(this);
@@ -50,6 +38,12 @@ class User extends React.Component {
         this.checkBoxUpdateUserListener = this.checkBoxUpdateUserListener.bind(this);
         this.selectValueDropDownUpdateUserListener = this.selectValueDropDownUpdateUserListener.bind(this);
         this.updateUser = this.updateUser.bind(this);
+        this.completeActionAddUser = this.completeActionAddUser.bind(this);
+    }
+
+    completeActionAddUser(user){
+        this.showModalToAddUser();
+        this.saveUser(user);
     }
 
     clearFields(){
@@ -80,24 +74,15 @@ class User extends React.Component {
         }));
     }
 
-    selectValueDropDownAddUserListener(e) {
-        this.setState({userLevel: e.currentTarget.textContent})
-    }
+
 
     selectValueDropDownUpdateUserListener(e) {
         this.setState({userLevelUpdate: e.currentTarget.textContent})
     }
 
-    showDropDownAddUserModal() {
-        this.setState(prevState => ({
-            isDropDownAddUserOpen: !prevState.isDropDownAddUserOpen
-        }));
-    }
 
-    checkBoxAddUserListener() {
-        const checkBox = document.querySelector('#checkIsUserActive');
-        this.setState({isActive: checkBox.checked});
-    }
+
+
 
     checkBoxUpdateUserListener() {
         const checkBox = document.querySelector('#checkIsUserActiveUpdate');
@@ -218,30 +203,6 @@ class User extends React.Component {
         await this.getUserLevel();
     }
 
-    handleValueTextChangeAddUserModal(event) {
-        const elementId = event.target.id;
-        const value = event.target.value;
-        switch (elementId) {
-            case "firstName":
-                this.setState({firstName: value});
-                break;
-            case "lastName":
-                this.setState({lastName: value});
-                break;
-            case "userName":
-                this.setState({userName: value});
-                break;
-            case "Password":
-                this.setState({password: value});
-                break;
-            case "email":
-                this.setState({email: value});
-                break;
-            default:
-        }
-
-    }
-
     handleChangeUpdateUserModal(event) {
         const elementId = event.target.id;
         const value = event.target.value;
@@ -263,7 +224,6 @@ class User extends React.Component {
                 break;
             default:
         }
-        // console.log(updatedUser);
     }
 
     updateUser(){
@@ -299,13 +259,10 @@ class User extends React.Component {
 
     }
 
-    async saveUser() {
-        this.showModalToAddUser();
-        const user = this.getUserFromState();
+    async saveUser(user) {
         await this.postUser(user);
-        this.setState({users: []})
         await this.getUsers();
-        this.clearFields();
+
     }
 
     getUserUpdatedFromState() {
@@ -321,19 +278,6 @@ class User extends React.Component {
             email: this.state.emailUpdate.length === 0 ? updatedUser.email : this.state.emailUpdate,
             userLevel: this.state.userLevelUpdate,
             isActive: this.state.isActiveUpdate
-        };
-    }
-
-    getUserFromState() {
-        const password = document.getElementById('password').value;
-        return {
-            firstName: this.state.firstName,
-            lastName: this.state.lastName,
-            userName: this.state.userName,
-            password: password,
-            email: this.state.email,
-            userLevel: this.state.userLevel,
-            isActive: this.state.isActive
         };
     }
 
@@ -398,14 +342,8 @@ class User extends React.Component {
             <div>
                 <AddUSerModal isShowModal={this.state.isShowModalToAddUser}
                               showModalListener={this.showModalToAddUser}
-                              handleChangeModal={this.handleValueTextChangeAddUserModal}
-                              isDropDownOpen={this.state.isDropDownAddUserOpen}
-                              showDropDownListener={this.showDropDownAddUserModal}
-                              userLevel={this.state.userLevel}
                               userLevels={this.state.userLevels}
-                              selectValueDropDownListener={this.selectValueDropDownAddUserListener}
-                              checkBoxAddUserListener={this.checkBoxAddUserListener}
-                              handleSubmitUser={this.saveUser} />
+                              completeAction={this.completeActionAddUser}/>
 
                 <UpdateUSerModal isShowModal={this.state.isShowUpdateUserModal}
                                  showModalListener={this.showUpdateUserModal}
