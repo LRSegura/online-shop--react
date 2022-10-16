@@ -26,6 +26,7 @@ class User extends React.Component {
         this.showModalToUpdateUser = this.showModalToUpdateUser.bind(this);
         this.completeActionAddUser = this.completeActionAddUser.bind(this);
         this.completeActionUpdateUser = this.completeActionUpdateUser.bind(this);
+        this.checkBoxDeleteAllUserListener = this.checkBoxDeleteAllUserListener.bind(this);
     }
 
     completeActionAddUser(user){
@@ -107,6 +108,14 @@ class User extends React.Component {
             if (user.id === Number(object.value)) {
                 user.selectedToDelete = checkBox.checked;
             }
+        });
+    }
+
+    checkBoxDeleteAllUserListener() {
+        const checkBox = document.querySelector('#checkAllUser');
+        const users = this.state.users;
+        users.forEach(user => {
+                user.selectedToDelete = checkBox.checked;
         });
     }
 
@@ -285,7 +294,7 @@ class User extends React.Component {
                         </div>
                     </div>
                     <div className="row">
-                        <UserDataTable data={this.state.users} checkBoxListener={this.checkBoxDeleteUserListener} handleUpdateUser={this.showModalToUpdateUser}
+                        <UserDataTable data={this.state.users} checkBoxAllUserListener={this.checkBoxDeleteAllUserListener} checkBoxUserListener={this.checkBoxDeleteUserListener} handleUpdateUser={this.showModalToUpdateUser}
                                        />
                     </div>
                 </div>
