@@ -4,7 +4,9 @@ export default function UserDataTable(props) {
     return <table className="table">
         <thead>
         <tr>
-            <th scope="col"></th>
+            <th scope="col"><input className="form-check-input" type="checkbox"
+                                   id={"checkAllUser"} onChange={props.checkBoxAllUserListener}/>
+            </th>
             <th scope="col">First Name</th>
             <th scope="col">Last Name</th>
             <th scope="col">User Name</th>
@@ -19,7 +21,7 @@ export default function UserDataTable(props) {
             return (
                 <tr key={item.id}>
                     <td><input className="form-check-input" type="checkbox" value={item.id}
-                               id={"checkUser" + item.id} onChange={props.checkBoxListener}/></td>
+                               id={"checkUser" + item.id} onChange={props.checkBoxUserListener}/></td>
                     <td>{item.firstName}</td>
                     <td>{item.lastName}</td>
                     <td>{item.userName}</td>
@@ -27,7 +29,7 @@ export default function UserDataTable(props) {
                     <td>{item.isActive ? "true":"false"}</td>
                     <td>{item.registerDate}</td>
                     <td><button className="btn btn-primary" type="button" onClick={props.handleUpdateUser} value={item.id}>Update
-                    </button></td>
+                        </button></td>
                 </tr>
             );
         })}

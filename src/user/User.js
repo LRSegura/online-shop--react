@@ -13,53 +13,30 @@ class User extends React.Component {
             users: [],
             userSet: new Set(),
             isShowModalToAddUser: false,
-            isDropDownAddUserOpen: false,
             isShowUpdateUserModal: false,
-            isDropDownUpdateUserOpen: false,
             userLevels: [],
-            firstName: '',
-            lastName: '',
-            userName: '',
-            password: '',
-            email: '',
-            userLevel: 'User Level',
-            isActive: false,
-            updatedUser: {},
-            isActiveUpdate: false,
-            userLevelUpdate: 'User Level',
-            firstNameUpdate: '',
-            lastNameUpdate: '',
-            userNameUpdate: '',
-            passwordUpdate: '',
-            emailUpdate: ''
-
+            updatedUser: {}
         }
         this.showUpdateUserModal = this.showUpdateUserModal.bind(this);
-        this.showDropDownUpdateUserModal = this.showDropDownUpdateUserModal.bind(this);
         this.showModalToAddUser = this.showModalToAddUser.bind(this);
-        this.showDropDownAddUserModal = this.showDropDownAddUserModal.bind(this);
-        this.selectValueDropDownAddUserListener = this.selectValueDropDownAddUserListener.bind(this);
-        this.handleValueTextChangeAddUserModal = this.handleValueTextChangeAddUserModal.bind(this);
-        this.checkBoxAddUserListener = this.checkBoxAddUserListener.bind(this);
         this.saveUser = this.saveUser.bind(this);
         this.checkBoxDeleteUserListener = this.checkBoxDeleteUserListener.bind(this);
         this.deleteUsersSelected = this.deleteUsersSelected.bind(this);
         this.filterUserDataTable = this.filterUserDataTable.bind(this);
         this.showModalToUpdateUser = this.showModalToUpdateUser.bind(this);
-        this.handleChangeUpdateUserModal = this.handleChangeUpdateUserModal.bind(this);
-        this.checkBoxUpdateUserListener = this.checkBoxUpdateUserListener.bind(this);
-        this.selectValueDropDownUpdateUserListener = this.selectValueDropDownUpdateUserListener.bind(this);
-        this.updateUser = this.updateUser.bind(this);
+        this.completeActionAddUser = this.completeActionAddUser.bind(this);
+        this.completeActionUpdateUser = this.completeActionUpdateUser.bind(this);
+        this.checkBoxDeleteAllUserListener = this.checkBoxDeleteAllUserListener.bind(this);
     }
 
-    clearFields(){
-        this.setState({firstName: '',
-            lastName: '',
-            userName: '',
-            password: '',
-            email: '',
-            userLevel: 'User Level',
-            isActive: false,});
+    completeActionAddUser(user){
+        this.showModalToAddUser();
+        this.saveUser(user);
+    }
+
+    completeActionUpdateUser(user){
+        this.showUpdateUserModal();
+        this.putUser(user);
     }
 
     showUpdateUserModal() {
@@ -68,40 +45,10 @@ class User extends React.Component {
         }));
     }
 
-    showDropDownUpdateUserModal() {
-        this.setState(prevState => ({
-            isDropDownUpdateUserOpen: !prevState.isDropDownUpdateUserOpen
-        }));
-    }
-
     showModalToAddUser() {
         this.setState(prevState => ({
             isShowModalToAddUser: !prevState.isShowModalToAddUser
         }));
-    }
-
-    selectValueDropDownAddUserListener(e) {
-        this.setState({userLevel: e.currentTarget.textContent})
-    }
-
-    selectValueDropDownUpdateUserListener(e) {
-        this.setState({userLevelUpdate: e.currentTarget.textContent})
-    }
-
-    showDropDownAddUserModal() {
-        this.setState(prevState => ({
-            isDropDownAddUserOpen: !prevState.isDropDownAddUserOpen
-        }));
-    }
-
-    checkBoxAddUserListener() {
-        const checkBox = document.querySelector('#checkIsUserActive');
-        this.setState({isActive: checkBox.checked});
-    }
-
-    checkBoxUpdateUserListener() {
-        const checkBox = document.querySelector('#checkIsUserActiveUpdate');
-        this.setState({isActiveUpdate: checkBox.checked});
     }
 
     async deleteUsersSelected() {
@@ -164,6 +111,14 @@ class User extends React.Component {
         });
     }
 
+    checkBoxDeleteAllUserListener() {
+        const checkBox = document.querySelector('#checkAllUser');
+        const users = this.state.users;
+        users.forEach(user => {
+                user.selectedToDelete = checkBox.checked;
+        });
+    }
+
 
     async getUsers() {
         const urlUsers = "http://localhost:8080/Online-Shop/webapi/application/users";
@@ -218,61 +173,6 @@ class User extends React.Component {
         await this.getUserLevel();
     }
 
-    handleValueTextChangeAddUserModal(event) {
-        const elementId = event.target.id;
-        const value = event.target.value;
-        switch (elementId) {
-            case "firstName":
-                this.setState({firstName: value});
-                break;
-            case "lastName":
-                this.setState({lastName: value});
-                break;
-            case "userName":
-                this.setState({userName: value});
-                break;
-            case "Password":
-                this.setState({password: value});
-                break;
-            case "email":
-                this.setState({email: value});
-                break;
-            default:
-        }
-
-    }
-
-    handleChangeUpdateUserModal(event) {
-        const elementId = event.target.id;
-        const value = event.target.value;
-        switch (elementId) {
-            case "firstNameUpdate":
-                this.setState({firstNameUpdate: value});
-                break;
-            case "lastNameUpdate":
-                this.setState({lastNameUpdate: value});
-                break;
-            case "userNameUpdate":
-                this.setState({userNameUpdate: value});
-                break;
-            case "PasswordUpdate":
-                this.setState({passwordUpdate: value});
-                break;
-            case "emailUpdate":
-                this.setState({emailUpdate: value});
-                break;
-            default:
-        }
-        // console.log(updatedUser);
-    }
-
-    updateUser(){
-        this.showUpdateUserModal();
-        const updatedUser = this.getUserUpdatedFromState();
-        this.putUser(updatedUser);
-        console.log(updatedUser);
-    }
-
     async putUser(user) {
         const url = "http://localhost:8080/Online-Shop/webapi/application/users/update";
         const response = await fetch(url, {
@@ -299,42 +199,10 @@ class User extends React.Component {
 
     }
 
-    async saveUser() {
-        this.showModalToAddUser();
-        const user = this.getUserFromState();
+    async saveUser(user) {
         await this.postUser(user);
-        this.setState({users: []})
         await this.getUsers();
-        this.clearFields();
-    }
 
-    getUserUpdatedFromState() {
-        const password = document.getElementById('passwordUpdate').value;
-        const updatedUser = this.state.updatedUser;
-
-        return {
-            id: this.state.updatedUser.id,
-            firstName: this.state.firstNameUpdate.length === 0 ? updatedUser.firstName : this.state.firstNameUpdate,
-            lastName: this.state.lastNameUpdate.length === 0 ? updatedUser.lastName : this.state.lastNameUpdate,
-            userName: this.state.userNameUpdate.length === 0 ? updatedUser.userName : this.state.userNameUpdate,
-            password: password.length === 0 ? updatedUser.password : password ,
-            email: this.state.emailUpdate.length === 0 ? updatedUser.email : this.state.emailUpdate,
-            userLevel: this.state.userLevelUpdate,
-            isActive: this.state.isActiveUpdate
-        };
-    }
-
-    getUserFromState() {
-        const password = document.getElementById('password').value;
-        return {
-            firstName: this.state.firstName,
-            lastName: this.state.lastName,
-            userName: this.state.userName,
-            password: password,
-            email: this.state.email,
-            userLevel: this.state.userLevel,
-            isActive: this.state.isActive
-        };
     }
 
     async postUser(user) {
@@ -398,26 +266,14 @@ class User extends React.Component {
             <div>
                 <AddUSerModal isShowModal={this.state.isShowModalToAddUser}
                               showModalListener={this.showModalToAddUser}
-                              handleChangeModal={this.handleValueTextChangeAddUserModal}
-                              isDropDownOpen={this.state.isDropDownAddUserOpen}
-                              showDropDownListener={this.showDropDownAddUserModal}
-                              userLevel={this.state.userLevel}
                               userLevels={this.state.userLevels}
-                              selectValueDropDownListener={this.selectValueDropDownAddUserListener}
-                              checkBoxAddUserListener={this.checkBoxAddUserListener}
-                              handleSubmitUser={this.saveUser} />
+                              completeAction={this.completeActionAddUser}/>
 
                 <UpdateUSerModal isShowModal={this.state.isShowUpdateUserModal}
                                  showModalListener={this.showUpdateUserModal}
-                                 handleChangeModal={this.handleChangeUpdateUserModal}
-                                 isDropDownOpen={this.state.isDropDownUpdateUserOpen}
-                                 showDropDownListener={this.showDropDownUpdateUserModal}
-                                 userLevel={this.state.userLevel}
                                  userLevels={this.state.userLevels}
-                                 selectValueDropDownListener={this.selectValueDropDownUpdateUserListener}
-                                 checkBoxAddUserListener={this.checkBoxUpdateUserListener}
-                                 handleSubmitUser={this.updateUser}
-                                 updatedUser={this.state.updatedUser}/>
+                                 updatedUser={this.state.updatedUser}
+                                 completeAction={this.completeActionUpdateUser}/>
 
                 <div className="container">
                     <div className="row">
@@ -438,7 +294,7 @@ class User extends React.Component {
                         </div>
                     </div>
                     <div className="row">
-                        <UserDataTable data={this.state.users} checkBoxListener={this.checkBoxDeleteUserListener} handleUpdateUser={this.showModalToUpdateUser}
+                        <UserDataTable data={this.state.users} checkBoxAllUserListener={this.checkBoxDeleteAllUserListener} checkBoxUserListener={this.checkBoxDeleteUserListener} handleUpdateUser={this.showModalToUpdateUser}
                                        />
                     </div>
                 </div>
